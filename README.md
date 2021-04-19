@@ -1,5 +1,18 @@
 # Disaster Response Pipeline Project
 
+## Instalation
+
+Look for the `environment.yml` file change last line
+
+```yaml
+prefix: /home/sgm/miniconda3/envs/data
+```
+to your own Anaconda instalation and env name and run command
+
+```yaml
+conda env create -f environment.yml
+```
+
 ### Instructions:
 1. Run the following commands in the project's root directory to set up your database and model.
 
