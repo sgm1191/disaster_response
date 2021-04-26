@@ -2,7 +2,8 @@ import sys
 
 import pandas as pd
 
-def load_data(messages_filepath:str, categories_filepath:str):
+
+def load_data(messages_filepath:str, categories_filepath:str) -> pd.DataFrame:
     """ loads disaster data from csv files
 
     Args:
@@ -18,7 +19,7 @@ def load_data(messages_filepath:str, categories_filepath:str):
     return df
 
 
-def clean_data(df):
+def clean_data(df: pd.DataFrame) -> pd.DataFrame:
     """ processes categories column and splits it into one column for each category
     in a one-hot like way, also removes duplicates.
 
@@ -43,12 +44,23 @@ def clean_data(df):
     return df
 
 
-def save_data(df, database_filename):
+def save_data(df:pd.DataFrame, database_filename:str) -> None:
+    """ saves a dataframe in a sqlite database
+    
+    Args:
+        df (pd.DataFrame): data to be saved
+
+    Returns:
+        None
+    """
     with create_engine('sqlite:///tweets.db') as engine:
-        df.to_sql('disaster_messages', engine, index=False)  
+        df.to_sql('disaster_messages', engine, index=False) 
 
 
-def main():
+def main() -> None:
+    """ runs the whole ETL pipeline where text data from tweet messages and categories
+    assigned to each one are loaded, processed and saved in a sqlite database
+    """
     if len(sys.argv) == 4:
 
         messages_filepath, categories_filepath, database_filepath = sys.argv[1:]
