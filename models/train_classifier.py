@@ -1,27 +1,30 @@
-
 import sys
+import re
 
 import numpy as np
+import pickle
 import pandas as pd
+import sqlalchemy
 import nltk
 nltk.download(['punkt', 'wordnet'])
 from nltk.tokenize import word_tokenize
 from nltk.stem import WordNetLemmatizer
-
 from sklearn.metrics import confusion_matrix
 from sklearn.model_selection import train_test_split
-from sklearn.ensemble import RandomForestClassifier
+from sklearn.model_selection import GridSearchCV
+from sklearn.neural_network import MLPClassifier
 from sklearn.feature_extraction.text import CountVectorizer, TfidfTransformer
 from sklearn.pipeline import Pipeline
 
 
 def load_data(database_filepath):
-    # TODO: implement database
-    df = pd.read_csv('corporate_messaging.csv', encoding='latin-1')
-    df = df[(df["category:confidence"] == 1) & (df['category'] != 'Exclude')]
-    X = df.text.values
-    y = df.category.values
-    return X, y
+    engine = sqlalchemy.create_engine("sqlite:///%s" % database_filepath)
+    df = pd.read_sql_table('disaster_messages', engine)
+    X = df.message.copy()
+    y = df[df.columns[4:]].copy()
+    y = y.apply(pd.to_numeric)
+    categories = df.columns[4:].copy()
+    return X, y, categories
 
 
 def tokenize(text):
@@ -41,25 +44,27 @@ def tokenize(text):
     return clean_tokens
 
 
-def build_model():
+def build_model(verbose=False):
     pipeline = Pipeline([
-        ('features', FeatureUnion([
-
-            ('text_pipeline', Pipeline([
-                ('vect', CountVectorizer(tokenizer=tokenize)),
-                ('tfidf', TfidfTransformer())
-            ])),
-
-            ('starting_verb', StartingVerbExtractor())
-        ])),
-
-        ('clf', RandomForestClassifier())
+        ('vect', CountVectorizer(tokenizer=tokenize)),
+        ('tfidf', TfidfTransformer()),
+        ('clf', MultiOutputClassifier(MLPClassifier()))
     ])
+    if verbose:
+        for p in pipeline.get_params().keys():
+           print(p)
 
     parameters = {
-        'features__text_pipeline__tfidf__norm': ['l2', 'l1'],
-        'clf__n_estimators': [50, 100, 150],
-        'clf__criterion': ['gini', 'entropy']
+        'tfidf__norm': ['l2', 'l1'],
+        'clf__estimator__hidden_layer_sizes': [
+            (50,),
+            (50, 25),
+            (50, 25, 10)
+        ],
+        'clf__estimator__learning_rate_init': [
+            0.001,
+            0.01
+        ]
     }
 
     cv = GridSearchCV(pipeline, parameters)
@@ -68,19 +73,20 @@ def build_model():
 
 
 def evaluate_model(model, X_test, Y_test, category_names):
+    print("\nBest Parameters:", model.best_params_)
     y_pred = model.predict(X_test, Y_test)
     labels = np.unique(y_pred)
     confusion_mat = confusion_matrix(y_test, y_pred, labels=labels)
     accuracy = (y_pred == y_test).mean()
 
-    print("Labels:", labels)
-    print("Confusion Matrix:\n", confusion_mat)
-    print("Accuracy:", accuracy)
-    print("\nBest Parameters:", model.best_params_)
+    for i, category in enumerate(category_names):
+        print(category, ':')
+        print(classification_report(y_test[category], y_pred[:, i]))
+        print()
 
 
 def save_model(model, model_filepath):
-    pass
+    pickle.dump(model, open(model_filepath, 'wb'))
 
 
 def main():
