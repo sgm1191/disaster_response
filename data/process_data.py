@@ -1,6 +1,7 @@
 import sys
 
 import pandas as pd
+import sqlalchemy
 
 
 def load_data(messages_filepath:str, categories_filepath:str) -> pd.DataFrame:
@@ -49,12 +50,12 @@ def save_data(df:pd.DataFrame, database_filename:str) -> None:
     
     Args:
         df (pd.DataFrame): data to be saved
-
+        database_filename (str): filename to save the database
     Returns:
         None
     """
-    with create_engine('sqlite:///tweets.db') as engine:
-        df.to_sql('disaster_messages', engine, index=False) 
+    engine = sqlalchemy.create_engine("sqlite:///%s" % database_filename)
+    df.to_sql('disaster_messages', engine, index=False)
 
 
 def main() -> None:
