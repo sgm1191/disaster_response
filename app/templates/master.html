@@ -65,8 +65,8 @@
 </div>
 
 <script type="text/javascript">
-    const graphs = {{graphJSON | safe}};
-    const ids = {{ids | safe}};
+    const graphs = {{ graphJSON }};
+    const ids = {{ ids }};
     for(let i in graphs) {
         Plotly.plot(ids[i], graphs[i].data, graphs[i].layout);
     }

@@ -1,3 +1,6 @@
+import sys
+sys.path.append('..')
+
 import json
 import plotly
 import pandas as pd
@@ -8,29 +11,30 @@ from nltk.tokenize import word_tokenize
 from flask import Flask
 from flask import render_template, request, jsonify
 from plotly.graph_objs import Bar
-from sklearn.externals import joblib
+import pickle
 from sqlalchemy import create_engine
-
+from models.train_classifier import *
 
 app = Flask(__name__)
 
-def tokenize(text):
-    tokens = word_tokenize(text)
-    lemmatizer = WordNetLemmatizer()
+# def tokenize(text):
+#     tokens = word_tokenize(text)
+#     lemmatizer = WordNetLemmatizer()
 
-    clean_tokens = []
-    for tok in tokens:
-        clean_tok = lemmatizer.lemmatize(tok).lower().strip()
-        clean_tokens.append(clean_tok)
+#     clean_tokens = []
+#     for tok in tokens:
+#         clean_tok = lemmatizer.lemmatize(tok).lower().strip()
+#         clean_tokens.append(clean_tok)
 
-    return clean_tokens
+#     return clean_tokens
 
 # load data
-engine = create_engine('sqlite:///../data/YourDatabaseName.db')
-df = pd.read_sql_table('YourTableName', engine)
+engine = create_engine('sqlite:///../data/DisasterResponse.db')
+df = pd.read_sql_table('disaster_messages', engine)
 
 # load model
-model = joblib.load("../models/your_model_name.pkl")
+with open('../models/classifier.pkl', 'rb') as file:
+    model = pickle.load(file)
 
 
 # index webpage displays cool visuals and receives user input text for model
@@ -69,6 +73,8 @@ def index():
     # encode plotly graphs in JSON
     ids = ["graph-{}".format(i) for i, _ in enumerate(graphs)]
     graphJSON = json.dumps(graphs, cls=plotly.utils.PlotlyJSONEncoder)
+    print(ids, file=sys.stderr)
+    print(graphJSON, file=sys.stderr)
     
     # render web page with plotly graphs
     return render_template('master.html', ids=ids, graphJSON=graphJSON)
