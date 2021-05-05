@@ -3,6 +3,7 @@ sys.path.append('..')
 
 import json
 import plotly
+import plotly.graph_objs as grob
 import pandas as pd
 
 from nltk.stem import WordNetLemmatizer
@@ -13,20 +14,17 @@ from flask import render_template, request, jsonify
 from plotly.graph_objs import Bar
 import pickle
 from sqlalchemy import create_engine
-from models.train_classifier import *
 
 app = Flask(__name__)
 
-# def tokenize(text):
-#     tokens = word_tokenize(text)
-#     lemmatizer = WordNetLemmatizer()
-
-#     clean_tokens = []
-#     for tok in tokens:
-#         clean_tok = lemmatizer.lemmatize(tok).lower().strip()
-#         clean_tokens.append(clean_tok)
-
-#     return clean_tokens
+def tokenize(text):
+    tokens = word_tokenize(text)
+    lemmatizer = WordNetLemmatizer()
+    clean_tokens = []
+    for tok in tokens:
+        clean_tok = lemmatizer.lemmatize(tok).lower().strip()
+        clean_tokens.append(clean_tok)
+    return clean_tokens
 
 # load data
 engine = create_engine('sqlite:///../data/DisasterResponse.db')
@@ -44,8 +42,12 @@ def index():
     
     # extract data needed for visuals
     # TODO: Below is an example - modify to extract data for your own visuals
+    
     genre_counts = df.groupby('genre').count()['message']
     genre_names = list(genre_counts.index)
+
+    df[df.columns[4:]] = df[df.columns[4:]].apply(pd.to_numeric)
+    cat_counts = df[df.columns[4:]].sum().sort_values().head(10)
     
     # create visuals
     # TODO: Below is an example - modify to create your own visuals
@@ -67,14 +69,31 @@ def index():
                     'title': "Genre"
                 }
             }
+        },
+        {
+            'data': [
+                Bar(
+                    x=cat_counts,
+                    y=list(cat_counts.index),
+                    orientation='h'
+                )
+            ],
+
+            'layout': {
+                'title': 'Distribution of top 10 Message Categories',
+                'yaxis': {
+                    'title': "Category"
+                },
+                'xaxis': {
+                    'title': "Count"
+                }
+            }
         }
     ]
     
     # encode plotly graphs in JSON
     ids = ["graph-{}".format(i) for i, _ in enumerate(graphs)]
     graphJSON = json.dumps(graphs, cls=plotly.utils.PlotlyJSONEncoder)
-    print(ids, file=sys.stderr)
-    print(graphJSON, file=sys.stderr)
     
     # render web page with plotly graphs
     return render_template('master.html', ids=ids, graphJSON=graphJSON)
