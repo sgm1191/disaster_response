@@ -42,6 +42,8 @@ def clean_data(df: pd.DataFrame) -> pd.DataFrame:
     df.drop("categories", axis=1, inplace=True)
     df = pd.concat([df, categories], axis=1)
     df = df.drop_duplicates()
+    df.drop(df[df['related'] == 2].index, inplace = True)
+    
     return df
 
 
@@ -55,7 +57,7 @@ def save_data(df:pd.DataFrame, database_filename:str) -> None:
         None
     """
     engine = sqlalchemy.create_engine("sqlite:///%s" % database_filename)
-    df.to_sql('disaster_messages', engine, index=False)
+    df.to_sql('disaster_messages', engine, index=False, if_exists='replace')
 
 
 def main() -> None:
