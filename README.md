@@ -27,6 +27,39 @@ pip install -f requirements.txt
 ### Model
 The model is not in this repo due to size restriction, instead you can download it [here](https://drive.google.com/file/d/1BVuCBuQdt449Ljh7hXNeB_NFzeY0HZg5/view?usp=sharing). The file is called `classifier.pkl` and you should place it in `models` dir.
 
+## Project Structure
+
+    ├── app
+    │   ├── __init__.py
+    │   ├── run.py
+    │   └── templates
+    │       ├── go.html
+    │       └── master.html
+    ├── data
+    │   ├── disaster_categories.csv
+    │   ├── disaster_messages.csv
+    │   ├── DisasterResponse.db
+    │   ├── __init__.py
+    │   └── process_data.py
+    ├── environment.yml
+    ├── LICENSE
+    ├── models
+    │   ├── classifier.pkl
+    │   ├── __init__.py
+    │   └── train_classifier.py
+    ├── notebooks
+    │   ├── ML_pipeline_demo.ipynb
+    │   └── process_data_demo.ipynb
+    ├── README.md
+    └── requirements.txt
+
+- *app*: scripts to run the web server of the disaster response message page
+- *app/templates*: front-end html pages for the web app
+- *data*: you can find datasets here and a script to clean and process the data into a database
+- *models*: the trained model dowloaded should be placed here, or you can train your own with the file `train_clasiffier.py` in this directory
+- *notebooks*: there are some jupyter notebooks used to explore the data cleaning process and the machine learning pipeline process
+- *environment.yml*, *requirements.txt*: files with the dependencies necessary to run the scripts in this repository, they are for anaconda and pip respectively.
+- *README.md*: this file containing a summary of the project.
 
 ## Instructions:
 
