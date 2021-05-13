@@ -37,13 +37,12 @@ def clean_data(df: pd.DataFrame) -> pd.DataFrame:
 
     for column in categories:
         categories[column] = categories[column].astype(str).str.split('-').str.get(1)
-    categories[column] = pd.to_numeric(categories[column])
+        categories[column] = pd.to_numeric(categories[column])
 
     df.drop("categories", axis=1, inplace=True)
     df = pd.concat([df, categories], axis=1)
     df = df.drop_duplicates()
-    # drop observations in related column so it is left with 1's and 0's
-    df.drop(df[df['related'] == 2].index, inplace = True)
+    df["related"] = (df["related"] >= 1).astype(int)
     
     return df
 
